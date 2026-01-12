@@ -23,7 +23,7 @@ Inspired by tools like Claude Code, Code Agent enables large language models to 
   Designed around modern LLM tool-use APIs, enabling tight feedback loops between reasoning and execution.
 
 
-## Installation
+## 📦 Installation
 
 ```bash
 # Clone the repository
@@ -36,6 +36,53 @@ source venv/bin/activate
 
 # Set your Anthropics API key
 export ANTHROPIC_API_KEY="your_api_key_here"
+```
+
+
+## 💻 CLI Usage
+
+Start the Code Agent:
+```bash
+python3 code_agent.py
+```
+
+Example CLI session:
+```text
+Code Agent | claude-opus-4-5 | /your/project/path
+────────────────────────────────────────────────────────
+❯ help
+⏺ You can use the following tools: read, write, edit, glob, grep, bash
+```
+
+
+## 📂 Basic Operations
+
+### 1️⃣ List project files
+```text
+❯ glob {"pat":"*.py"}
+⏺ Glob(/path/to/file.py)
+```
+
+### 2️⃣ Read file contents
+```text
+❯ read {"path":"example.py","offset":0,"limit":10}
+⏺ 1| import os
+⏺ 2| import sys
+...
+```
+
+### 3️⃣ Edit a file
+```text
+❯ edit {"path":"example.py","old":"print('Hello')","new":"print('Hello World')"}
+⏺ ok
+```
+
+### 4️⃣ Run shell commands
+```text
+❯ bash {"cmd":"ls -la"}
+⏺ total 56
+⏺ -rw-r--r-- 1 user group 1234 Jan 12 12:00 example.py
+...
 ```
 
 
