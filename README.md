@@ -4,6 +4,7 @@
 
 Inspired by tools like Claude Code, Code Agent enables large language models to iteratively reason, inspect codebases, modify files, and run commands through a transparent tool-use loop — without heavy frameworks or complex dependencies.
 
+
 ## ✨ Features
 
 * **Agentic Coding Loop**
@@ -21,6 +22,23 @@ Inspired by tools like Claude Code, Code Agent enables large language models to 
 * **Model-Driven Workflow**
   Designed around modern LLM tool-use APIs, enabling tight feedback loops between reasoning and execution.
 
+
+## Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/Yuan-ManX/code-agent.git
+cd code-agent
+
+# Optional: create a virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Set your Anthropics API key
+export ANTHROPIC_API_KEY="your_api_key_here"
+```
+
+
 ## 🎯 Philosophy
 
 Code Agent is built around a simple idea:
@@ -28,6 +46,7 @@ Code Agent is built around a simple idea:
 > **Coding agents should be transparent, controllable, and easy to understand.**
 
 Instead of hiding logic behind complex abstractions, Code Agent exposes the core agent loop directly — making it suitable for learning, experimentation, and building your own agentic developer tools.
+
 
 ## 🚀 Use Cases
 
