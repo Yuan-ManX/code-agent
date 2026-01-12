@@ -86,6 +86,12 @@ Code Agent | claude-opus-4-5 | /your/project/path
 ```
 
 
+## 📂 Commands
+
+- `/c` - Clear conversation
+- `/q` or `exit` - Quit
+
+
 ## 🎯 Philosophy
 
 Code Agent is built around a simple idea:
