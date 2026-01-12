@@ -9,6 +9,8 @@ import os
 import re
 import subprocess
 import urllib.request
+from dataclasses import dataclass, field
+from typing import List
 
 # ======================
 # Configuration
@@ -18,6 +20,7 @@ API_URL = "https://api.anthropic.com/v1/messages"
 MODEL = "claude-opus-4-5"
 MAX_TOKENS = 8192
 CWD = os.getcwd()
+MEMORY_PATH = ".code-agent/memory.json"
 
 # ======================
 # ANSI UI
@@ -196,6 +199,80 @@ def tool_schema():
 
 
 # ======================
+# Memory Summary
+# ======================
+
+@dataclass
+class MemorySummary:
+    project_overview: str = ""
+    current_goal: str = ""
+    decisions: List[str] = field(default_factory=list)
+    constraints: List[str] = field(default_factory=list)
+    code_conventions: List[str] = field(default_factory=list)
+    open_questions: List[str] = field(default_factory=list)
+    recent_changes: List[str] = field(default_factory=list)
+
+
+def load_memory() -> MemorySummary:
+    if os.path.exists(MEMORY_PATH):
+        data = json.loads(open(MEMORY_PATH).read())
+        return MemorySummary(**data)
+    return MemorySummary()
+
+
+def save_memory(memory: MemorySummary):
+    os.makedirs(os.path.dirname(MEMORY_PATH), exist_ok=True)
+    with open(MEMORY_PATH, "w") as f:
+        json.dump(memory.__dict__, f, indent=2, ensure_ascii=False)
+
+
+def build_memory_prompt(existing: MemorySummary, recent_context: str) -> str:
+    return f"""
+You are a memory summarization module for a Code Agent.
+Rules:
+- Update only changed information, keep it concise and factual.
+- Do NOT include raw dialogue.
+- Current project working directory: {CWD}
+
+Existing Memory Summary:
+{existing}
+
+Recent context:
+{recent_context}
+
+Output in this format:
+- Project Overview:
+- Current Goal:
+- Decisions Made:
+- Constraints:
+- Code Conventions:
+- Open Questions:
+- Recent Changes:
+""".strip()
+
+
+class MemoryManager:
+    def __init__(self, llm_call):
+        self.llm_call = llm_call
+        self.memory = load_memory()
+
+    def should_update(self, context_tokens, task_completed=False, structure_changed=False, goal_changed=False, token_limit=MAX_TOKENS):
+        return any([
+            task_completed,
+            structure_changed,
+            goal_changed,
+            context_tokens > token_limit * 0.7
+        ])
+
+    def update(self, recent_context: str):
+        prompt = build_memory_prompt(self.memory, recent_context)
+        response = self.llm_call([{"role": "user", "content": prompt}], "Update Memory Summary")
+        self.memory.recent_changes.append(recent_context)
+        save_memory(self.memory)
+        return self.memory
+
+
+# ======================
 # LLM API
 # ======================
 
@@ -236,14 +313,19 @@ Rules:
 
 
 def agent_loop(messages):
+    memory_mgr = MemoryManager(call_llm)
+
     while True:
         response = call_llm(messages, SYSTEM_PROMPT)
         blocks = response.get("content", [])
         tool_results = []
 
+        recent_context = ""  # 收集本轮上下文用于 memory 更新
+
         for block in blocks:
             if block["type"] == "text":
                 print(f"\n{CYAN}⏺{RESET} {render_markdown(block['text'])}")
+                recent_context += block["text"] + "\n"
 
             elif block["type"] == "tool_use":
                 name = block["name"]
@@ -254,13 +336,11 @@ def agent_loop(messages):
                 preview = result.splitlines()[0][:80]
                 print(f"  {DIM}⎿ {preview}{RESET}")
 
-                tool_results.append(
-                    {
-                        "type": "tool_result",
-                        "tool_use_id": block["id"],
-                        "content": result,
-                    }
-                )
+                tool_results.append({"type": "tool_result", "tool_use_id": block["id"], "content": result})
+                recent_context += f"[Tool {name}]: {result}\n"
+
+        # 更新 memory
+        memory_mgr.update(recent_context)
 
         messages.append({"role": "assistant", "content": blocks})
 
