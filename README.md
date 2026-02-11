@@ -1,5 +1,5 @@
 <div align="center">
-<h1>💻 Code Agent:<br/>A Minimal, Terminal-First Coding Agent</h1>
+<h1>💻 Code Agent:<br/>A Minimal, Terminal-First Coding Agent.</h1>
 </div>
 
 
