@@ -1,4 +1,7 @@
-# Code Agent
+<div align="center">
+<h1>💻 Code Agent:<br/>A Minimal, Terminal-First Coding Agent</h1>
+</div>
+
 
 **Code Agent** is a minimal, terminal-first coding agent that brings agentic code editing, file system access, and command execution into a lightweight CLI experience.
 
